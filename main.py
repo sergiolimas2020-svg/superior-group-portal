@@ -14,7 +14,7 @@ from sqlalchemy import or_, func, desc
 from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
-from database import get_db, init_db
+from database import get_db, init_db, SessionLocal
 from models import (
     Usuario,
     Cliente,
@@ -46,6 +46,33 @@ templates = Jinja2Templates(directory="templates")
 @app.on_event("startup")
 def _startup():
     init_db()
+    _ensure_admin()
+
+
+def _ensure_admin():
+    email = os.getenv("ADMIN_EMAIL", "").lower().strip()
+    password = os.getenv("ADMIN_PASSWORD", "")
+    nombre = os.getenv("ADMIN_NOMBRE", "Administrador")
+    if not email or not password:
+        return
+    db = SessionLocal()
+    try:
+        existe = db.query(Usuario).filter(Usuario.email == email).first()
+        if existe:
+            return
+        db.add(
+            Usuario(
+                nombre=nombre,
+                email=email,
+                password_hash=bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode(),
+                rol="admin",
+                activo=True,
+            )
+        )
+        db.commit()
+        print(f"[startup] Admin inicial creado: {email}")
+    finally:
+        db.close()
 
 
 # ---------- helpers ----------
