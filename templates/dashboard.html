@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Superior Group{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Dashboard</h1>
+    <div class="page-subtitle">Resumen operacional</div>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card st-orange">
+    <div class="stat-label">Clientes activos</div>
+    <div class="stat-value">{{ total_clientes }}</div>
+  </div>
+  <div class="stat-card st-blue">
+    <div class="stat-label">Total órdenes</div>
+    <div class="stat-value">{{ total_ot }}</div>
+  </div>
+  <div class="stat-card st-yellow">
+    <div class="stat-label">Pendientes</div>
+    <div class="stat-value">{{ por_estado.pendiente }}</div>
+  </div>
+  <div class="stat-card st-blue">
+    <div class="stat-label">En proceso</div>
+    <div class="stat-value">{{ por_estado.en_proceso }}</div>
+  </div>
+  <div class="stat-card st-green">
+    <div class="stat-label">Completadas</div>
+    <div class="stat-value">{{ por_estado.completada }}</div>
+  </div>
+  <div class="stat-card st-orange">
+    <div class="stat-label">Facturadas</div>
+    <div class="stat-value">{{ por_estado.facturada }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Órdenes recientes</h2>
+    <a href="/ordenes" class="btn btn-ghost btn-sm">Ver todas →</a>
+  </div>
+  <div class="tabla-wrapper">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>N° OT</th>
+          <th>Cliente</th>
+          <th>Tipo servicio</th>
+          <th>Sede</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in recientes %}
+        <tr class="tabla-row-link" data-href="/ordenes/{{ o.id }}">
+          <td><span class="ot-num">{{ o.numero }}</span></td>
+          <td>{{ o.cliente.nombre if o.cliente else '—' }}</td>
+          <td>{{ o.tipo_servicio }}</td>
+          <td>{{ o.sede or '—' }}</td>
+          <td><span class="badge badge--{{ o.estado }}">{{ o.estado.replace('_',' ') }}</span></td>
+          <td class="muted text-small">{{ o.fecha_creacion.strftime('%d/%m/%Y') }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="muted" style="text-align:center;padding:30px;">Sin órdenes todavía.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

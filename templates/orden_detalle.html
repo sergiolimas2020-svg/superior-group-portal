@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}{{ orden.numero }} - Superior Group{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ orden.numero }}</h1>
+    <div class="page-subtitle">
+      <span class="badge badge--{{ orden.estado }}">{{ orden.estado.replace('_',' ') }}</span>
+      <span class="muted" style="margin-left:10px;">Creada el {{ orden.fecha_creacion.strftime('%d/%m/%Y') }}</span>
+    </div>
+  </div>
+  <div class="d-flex gap-8">
+    <a href="/ordenes" class="btn btn-ghost">← Volver</a>
+    <button class="btn" onclick="openModal('modalEditarOT')">Editar</button>
+    {% if user and user.rol == 'admin' %}
+    <form method="post" action="/ordenes/{{ orden.id }}/eliminar" onsubmit="return confirmDelete('¿Eliminar la orden {{ orden.numero }}?');">
+      <button type="submit" class="btn btn-danger">Eliminar</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="ot-info-grid">
+  <div class="info-card">
+    <div class="info-label">Cliente</div>
+    <div class="info-value">{{ orden.cliente.nombre if orden.cliente else '—' }}</div>
+  </div>
+  <div class="info-card">
+    <div class="info-label">Tipo de servicio</div>
+    <div class="info-value">{{ orden.tipo_servicio }}</div>
+  </div>
+  <div class="info-card">
+    <div class="info-label">Sede</div>
+    <div class="info-value">{{ orden.sede or '—' }}</div>
+  </div>
+  <div class="info-card">
+    <div class="info-label">Técnico</div>
+    <div class="info-value">{{ orden.tecnico.nombre if orden.tecnico else '—' }}</div>
+  </div>
+  <div class="info-card">
+    <div class="info-label">Fecha programada</div>
+    <div class="info-value">{{ orden.fecha_programada.strftime('%d/%m/%Y') if orden.fecha_programada else '—' }}</div>
+  </div>
+  <div class="info-card info-card--full">
+    <div class="info-label">Descripción</div>
+    <div class="info-value">{{ orden.descripcion or '—' }}</div>
+  </div>
+  {% if orden.notas %}
+  <div class="info-card info-card--full">
+    <div class="info-label">Notas internas</div>
+    <div class="info-value">{{ orden.notas }}</div>
+  </div>
+  {% endif %}
+</div>
+
+<div class="evidencias-seccion">
+  <div class="page-header">
+    <h2 class="page-title" style="font-size:24px;">Evidencias fotográficas</h2>
+    <button class="btn btn-primary" onclick="openModal('modalSubirFotos')">+ Subir fotos</button>
+  </div>
+
+  {% for tipo in tipos_evidencia %}
+  {% set fotos = evidencias_por_tipo.get(tipo, []) %}
+  <div class="evidencia-grupo evidencia-grupo--{{ tipo }}">
+    <h3 class="evidencia-grupo-titulo">
+      {{ tipo|upper }} <span class="count">({{ fotos|length }})</span>
+    </h3>
+    {% if fotos %}
+    <div class="fotos-grid">
+      {% for f in fotos %}
+      <div class="foto-item">
+        <div class="foto-wrap">
+          <img src="{{ f.url }}" alt="Evidencia" loading="lazy">
+          <div class="foto-overlay">
+            <a href="{{ f.url }}" target="_blank" rel="noopener">Ver original</a>
+          </div>
+        </div>
+        <form method="post" action="/evidencias/{{ f.id }}/eliminar" onsubmit="return confirmDelete('¿Eliminar esta foto?');">
+          <button type="submit" class="foto-del" title="Eliminar">×</button>
+        </form>
+        <div class="foto-meta">
+          {% if f.descripcion %}<div class="foto-desc">{{ f.descripcion }}</div>{% endif %}
+          <div class="foto-fecha">{{ f.fecha_subida.strftime('%d/%m/%Y %H:%M') }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">Sin fotos en esta categoría.</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Modal subir fotos -->
+<div id="modalSubirFotos" class="modal">
+  <div class="modal-backdrop">
+    <div class="modal-box modal-box--lg">
+      <div class="modal-header">
+        <h3 class="modal-title">Subir evidencias</h3>
+        <button class="modal-close" onclick="closeModal('modalSubirFotos')">×</button>
+      </div>
+      <form method="post" action="/ordenes/{{ orden.id }}/evidencias/subir" enctype="multipart/form-data" class="form-upload">
+        <div class="modal-body">
+          <label class="form-label">Tipo de evidencia *</label>
+          <div class="tipo-selector">
+            <label>
+              <input type="radio" name="tipo" value="antes" required>
+              <span class="tipo-antes-label" style="display:block;padding:12px 8px;text-align:center;background:var(--bg);border:2px solid var(--border);border-radius:8px;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">Antes</span>
+            </label>
+            <label>
+              <input type="radio" name="tipo" value="durante">
+              <span class="tipo-durante-label" style="display:block;padding:12px 8px;text-align:center;background:var(--bg);border:2px solid var(--border);border-radius:8px;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">Durante</span>
+            </label>
+            <label>
+              <input type="radio" name="tipo" value="despues">
+              <span class="tipo-despues-label" style="display:block;padding:12px 8px;text-align:center;background:var(--bg);border:2px solid var(--border);border-radius:8px;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);">Después</span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Descripción (opcional)</label>
+            <input type="text" name="descripcion" class="form-control" placeholder="Ej: fachada norte">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Archivos</label>
+            <div id="dropZoneEvidencias" class="drop-zone">
+              <div class="drop-zone-icon">⬆</div>
+              <div class="drop-zone-text">
+                <strong>Haz clic</strong> o arrastra imágenes aquí
+              </div>
+              <input type="file" id="archivosEvidencias" name="archivos" accept="image/*" multiple required>
+            </div>
+            <div id="previewEvidencias" class="preview-grid"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('modalSubirFotos')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Subir evidencias</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar OT -->
+<div id="modalEditarOT" class="modal">
+  <div class="modal-backdrop">
+    <div class="modal-box modal-box--lg">
+      <div class="modal-header">
+        <h3 class="modal-title">Editar orden {{ orden.numero }}</h3>
+        <button class="modal-close" onclick="closeModal('modalEditarOT')">×</button>
+      </div>
+      <form method="post" action="/ordenes/{{ orden.id }}/editar">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Cliente *</label>
+              <select name="cliente_id" class="form-select" required>
+                {% for c in clientes %}
+                <option value="{{ c.id }}" {% if c.id == orden.cliente_id %}selected{% endif %}>{{ c.nombre }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tipo de servicio *</label>
+              <select name="tipo_servicio" class="form-select" required>
+                {% for t in tipos_servicio %}
+                <option value="{{ t }}" {% if t == orden.tipo_servicio %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Estado *</label>
+              <select name="estado" class="form-select" required>
+                {% for e in estados_ot %}
+                <option value="{{ e }}" {% if e == orden.estado %}selected{% endif %}>{{ e.replace('_',' ')|title }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Técnico</label>
+              <select name="tecnico_id" class="form-select">
+                <option value="">-- Sin asignar --</option>
+                {% for t in tecnicos %}
+                <option value="{{ t.id }}" {% if orden.tecnico_id == t.id %}selected{% endif %}>{{ t.nombre }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Sede</label>
+              <input type="text" name="sede" class="form-control" value="{{ orden.sede or '' }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fecha programada</label>
+              <input type="date" name="fecha_programada" class="form-control" value="{{ orden.fecha_programada.strftime('%Y-%m-%d') if orden.fecha_programada else '' }}">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción</label>
+            <textarea name="descripcion" class="form-control" rows="3">{{ orden.descripcion or '' }}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notas internas</label>
+            <textarea name="notas" class="form-control" rows="2">{{ orden.notas or '' }}</textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('modalEditarOT')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

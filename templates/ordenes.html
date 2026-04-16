@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Órdenes de trabajo - Superior Group{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Órdenes de trabajo</h1>
+    <div class="page-subtitle">{{ ordenes|length }} orden(es)</div>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('modalNuevaOT')">+ Nueva orden</button>
+</div>
+
+<form class="filtros-bar" method="get" action="/ordenes">
+  <input type="text" name="q" value="{{ q }}" placeholder="Buscar por número, tipo, sede..." class="form-control">
+  <select name="cliente_id" class="form-select">
+    <option value="">Todos los clientes</option>
+    {% for c in clientes %}
+    <option value="{{ c.id }}" {% if filtro_cliente == c.id %}selected{% endif %}>{{ c.nombre }}</option>
+    {% endfor %}
+  </select>
+  <select name="estado" class="form-select">
+    <option value="">Todos los estados</option>
+    {% for e in estados_ot %}
+    <option value="{{ e }}" {% if filtro_estado == e %}selected{% endif %}>{{ e.replace('_',' ')|title }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn">Filtrar</button>
+  {% if q or filtro_cliente or filtro_estado %}<a href="/ordenes" class="btn btn-ghost">Limpiar</a>{% endif %}
+</form>
+
+<div class="card">
+  <div class="tabla-wrapper">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>N° OT</th>
+          <th>Cliente</th>
+          <th>Tipo servicio</th>
+          <th>Sede</th>
+          <th>Técnico</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in ordenes %}
+        <tr class="tabla-row-link" data-href="/ordenes/{{ o.id }}">
+          <td><span class="ot-num">{{ o.numero }}</span></td>
+          <td>{{ o.cliente.nombre if o.cliente else '—' }}</td>
+          <td>{{ o.tipo_servicio }}</td>
+          <td>{{ o.sede or '—' }}</td>
+          <td>{{ o.tecnico.nombre if o.tecnico else '—' }}</td>
+          <td><span class="badge badge--{{ o.estado }}">{{ o.estado.replace('_',' ') }}</span></td>
+          <td class="muted text-small">{{ o.fecha_creacion.strftime('%d/%m/%Y') }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="muted" style="text-align:center;padding:30px;">Sin órdenes que mostrar.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="modalNuevaOT" class="modal">
+  <div class="modal-backdrop">
+    <div class="modal-box modal-box--lg">
+      <div class="modal-header">
+        <h3 class="modal-title">Nueva orden de trabajo</h3>
+        <button class="modal-close" onclick="closeModal('modalNuevaOT')">×</button>
+      </div>
+      <form method="post" action="/ordenes/nueva">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Cliente *</label>
+              <select name="cliente_id" class="form-select" required>
+                <option value="">-- Selecciona --</option>
+                {% for c in clientes %}
+                <option value="{{ c.id }}">{{ c.nombre }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tipo de servicio *</label>
+              <select name="tipo_servicio" class="form-select" required>
+                <option value="">-- Selecciona --</option>
+                {% for t in tipos_servicio %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Sede / Dirección</label>
+              <input type="text" name="sede" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fecha programada</label>
+              <input type="date" name="fecha_programada" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Técnico asignado</label>
+            <select name="tecnico_id" class="form-select">
+              <option value="">-- Sin asignar --</option>
+              {% for t in tecnicos %}
+              <option value="{{ t.id }}">{{ t.nombre }} ({{ t.rol }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción</label>
+            <textarea name="descripcion" class="form-control" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notas internas</label>
+            <textarea name="notas" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('modalNuevaOT')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Crear orden</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

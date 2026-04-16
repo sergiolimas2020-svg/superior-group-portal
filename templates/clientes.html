@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Clientes - Superior Group{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Clientes</h1>
+    <div class="page-subtitle">{{ clientes|length }} cliente(s) activos</div>
+  </div>
+  {% if user and user.rol == 'admin' %}
+  <button class="btn btn-primary" onclick="openModal('modalNuevoCliente')">+ Nuevo cliente</button>
+  {% endif %}
+</div>
+
+<form class="filtros-bar" method="get" action="/clientes">
+  <input type="text" name="q" value="{{ q }}" placeholder="Buscar por nombre, NIT, contacto..." class="form-control">
+  <button type="submit" class="btn">Buscar</button>
+  {% if q %}<a href="/clientes" class="btn btn-ghost">Limpiar</a>{% endif %}
+</form>
+
+<div class="clientes-grid">
+  {% for c in clientes %}
+  <div class="cliente-card">
+    <div class="cliente-nombre">{{ c.nombre }}</div>
+    {% if c.nit %}<div class="cliente-nit">NIT: {{ c.nit }}</div>{% endif %}
+    <div class="cliente-info">
+      {% if c.contacto %}<div><strong>Contacto:</strong> {{ c.contacto }}</div>{% endif %}
+      {% if c.telefono %}<div><strong>Tel:</strong> {{ c.telefono }}</div>{% endif %}
+      {% if c.email %}<div><strong>Email:</strong> {{ c.email }}</div>{% endif %}
+      {% if c.ciudad %}<div><strong>Ciudad:</strong> {{ c.ciudad }}</div>{% endif %}
+    </div>
+    {% if user and user.rol == 'admin' %}
+    <div class="cliente-actions">
+      <form method="post" action="/clientes/{{ c.id }}/eliminar" onsubmit="return confirmDelete('¿Eliminar cliente {{ c.nombre }}?');">
+        <button type="submit" class="btn btn-ghost btn-sm">Eliminar</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="empty-state">No hay clientes registrados.</div>
+  {% endfor %}
+</div>
+
+<!-- Modal -->
+<div id="modalNuevoCliente" class="modal">
+  <div class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Nuevo cliente</h3>
+        <button class="modal-close" onclick="closeModal('modalNuevoCliente')">×</button>
+      </div>
+      <form method="post" action="/clientes/nuevo">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Nombre *</label>
+            <input type="text" name="nombre" class="form-control" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">NIT</label>
+              <input type="text" name="nit" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contacto</label>
+              <input type="text" name="contacto" class="form-control">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input type="text" name="telefono" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ciudad</label>
+            <input type="text" name="ciudad" class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('modalNuevoCliente')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Crear cliente</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

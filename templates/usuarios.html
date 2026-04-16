@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Usuarios - Superior Group{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Usuarios</h1>
+    <div class="page-subtitle">{{ usuarios|length }} usuario(s)</div>
+  </div>
+  <button class="btn btn-primary" onclick="openModal('modalNuevoUsuario')">+ Nuevo usuario</button>
+</div>
+
+<div class="card">
+  <div class="tabla-wrapper">
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Creación</th>
+          <th style="text-align:right;">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in usuarios %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="avatar" style="width:30px;height:30px;font-size:13px;">{{ u.nombre[0]|upper }}</div>
+              <strong>{{ u.nombre }}</strong>
+            </div>
+          </td>
+          <td class="muted">{{ u.email }}</td>
+          <td><span class="badge badge--{{ u.rol }}">{{ u.rol }}</span></td>
+          <td>
+            {% if u.activo %}
+            <span class="badge badge--completada">Activo</span>
+            {% else %}
+            <span class="badge badge--pendiente">Inactivo</span>
+            {% endif %}
+          </td>
+          <td class="muted text-small">{{ u.fecha_creacion.strftime('%d/%m/%Y') }}</td>
+          <td class="row-actions">
+            {% if u.id != user.id and u.activo %}
+            <form method="post" action="/usuarios/{{ u.id }}/eliminar" onsubmit="return confirmDelete('¿Desactivar usuario {{ u.nombre }}?');">
+              <button type="submit" class="btn btn-ghost btn-sm">Desactivar</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="muted" style="text-align:center;padding:30px;">Sin usuarios.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="modalNuevoUsuario" class="modal">
+  <div class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Nuevo usuario</h3>
+        <button class="modal-close" onclick="closeModal('modalNuevoUsuario')">×</button>
+      </div>
+      <form method="post" action="/usuarios/nuevo">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Nombre *</label>
+            <input type="text" name="nombre" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email *</label>
+            <input type="email" name="email" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Contraseña *</label>
+            <input type="password" name="password" class="form-control" required minlength="6">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rol</label>
+            <select name="rol" class="form-select">
+              <option value="tecnico">Técnico</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('modalNuevoUsuario')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Crear usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Superior Group Portal{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      SG
+      <small>Superior Group</small>
+    </div>
+    <nav class="nav">
+      <a href="/dashboard" class="nav-item {% if request.url.path == '/dashboard' %}active{% endif %}">
+        <span class="nav-icon">▪</span> Dashboard
+      </a>
+      <a href="/clientes" class="nav-item {% if '/clientes' in request.url.path %}active{% endif %}">
+        <span class="nav-icon">▪</span> Clientes
+      </a>
+      <a href="/ordenes" class="nav-item {% if '/ordenes' in request.url.path %}active{% endif %}">
+        <span class="nav-icon">▪</span> Órdenes
+      </a>
+      {% if user and user.rol == 'admin' %}
+      <a href="/usuarios" class="nav-item {% if '/usuarios' in request.url.path %}active{% endif %}">
+        <span class="nav-icon">▪</span> Usuarios
+      </a>
+      {% endif %}
+    </nav>
+    {% if user %}
+    <div class="sidebar-footer">
+      <div class="avatar">{{ user.nombre[0]|upper }}</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">{{ user.nombre }}</div>
+        <div class="sidebar-user-role">{{ user.rol }}</div>
+      </div>
+      <a href="/logout" class="btn-logout" title="Salir">⏻</a>
+    </div>
+    {% endif %}
+  </aside>
+
+  <main class="main-content">
+    {% if flashes %}
+    <div class="flash-container">
+      {% for f in flashes %}
+      <div class="flash {{ f.tipo }}">{{ f.mensaje }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="/static/js/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
