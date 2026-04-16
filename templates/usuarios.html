@@ -18,7 +18,6 @@
           <th>Nombre</th>
           <th>Email</th>
           <th>Rol</th>
-          <th>Estado</th>
           <th>Creación</th>
           <th style="text-align:right;">Acciones</th>
         </tr>
@@ -34,24 +33,17 @@
           </td>
           <td class="muted">{{ u.email }}</td>
           <td><span class="badge badge--{{ u.rol }}">{{ u.rol }}</span></td>
-          <td>
-            {% if u.activo %}
-            <span class="badge badge--completada">Activo</span>
-            {% else %}
-            <span class="badge badge--pendiente">Inactivo</span>
-            {% endif %}
-          </td>
           <td class="muted text-small">{{ u.fecha_creacion.strftime('%d/%m/%Y') }}</td>
           <td class="row-actions">
-            {% if u.id != user.id and u.activo %}
-            <form method="post" action="/usuarios/{{ u.id }}/eliminar" onsubmit="return confirmDelete('¿Desactivar usuario {{ u.nombre }}?');">
-              <button type="submit" class="btn btn-ghost btn-sm">Desactivar</button>
+            {% if u.id != user.id %}
+            <form method="post" action="/usuarios/{{ u.id }}/eliminar" onsubmit="return confirmDelete('¿Borrar usuario {{ u.nombre }}? El nombre seguirá visible en las órdenes anteriores.');">
+              <button type="submit" class="btn btn-ghost btn-sm">Borrar</button>
             </form>
             {% endif %}
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="muted" style="text-align:center;padding:30px;">Sin usuarios.</td></tr>
+        <tr><td colspan="5" class="muted" style="text-align:center;padding:30px;">Sin usuarios.</td></tr>
         {% endfor %}
       </tbody>
     </table>

@@ -49,7 +49,7 @@
           <td>{{ o.cliente.nombre if o.cliente else '—' }}</td>
           <td>{{ o.tipo_servicio }}</td>
           <td>{{ o.sede or '—' }}</td>
-          <td>{{ o.tecnico.nombre if o.tecnico else '—' }}</td>
+          <td>{% if o.tecnico %}{{ o.tecnico.nombre }}{% if not o.tecnico.activo %} <span class="muted text-small">(borrado)</span>{% endif %}{% else %}—{% endif %}</td>
           <td><span class="badge badge--{{ o.estado }}">{{ o.estado.replace('_',' ') }}</span></td>
           <td class="muted text-small">{{ o.fecha_creacion.strftime('%d/%m/%Y') }}</td>
         </tr>

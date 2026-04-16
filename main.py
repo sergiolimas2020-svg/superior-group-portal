@@ -570,7 +570,7 @@ def usuarios_list(request: Request, db: Session = Depends(get_db)):
         flash(request, "Solo administradores.", "error")
         return RedirectResponse("/dashboard", status_code=302)
 
-    usuarios = db.query(Usuario).order_by(Usuario.nombre).all()
+    usuarios = db.query(Usuario).filter(Usuario.activo == True).order_by(Usuario.nombre).all()  # noqa: E712
     return render(request, db, "usuarios.html", usuarios=usuarios)
 
 
@@ -621,5 +621,5 @@ def usuarios_eliminar(usuario_id: int, request: Request, db: Session = Depends(g
     if obj:
         obj.activo = False
         db.commit()
-        flash(request, "Usuario desactivado.", "success")
+        flash(request, "Usuario borrado.", "success")
     return RedirectResponse("/usuarios", status_code=302)

@@ -36,7 +36,7 @@
   </div>
   <div class="info-card">
     <div class="info-label">Técnico</div>
-    <div class="info-value">{{ orden.tecnico.nombre if orden.tecnico else '—' }}</div>
+    <div class="info-value">{% if orden.tecnico %}{{ orden.tecnico.nombre }}{% if not orden.tecnico.activo %} <span class="muted text-small">(borrado)</span>{% endif %}{% else %}—{% endif %}</div>
   </div>
   <div class="info-card">
     <div class="info-label">Fecha programada</div>
